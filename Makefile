@@ -11,14 +11,17 @@ EXE = main.x
 
 all: $(EXE)
 
-$(EXE): main.o cpu.o opcodes.o graphics.o sdl_helper_functions.o
-	$(CXX) main.o cpu.o opcodes.o graphics.o sdl_helper_functions.o $(LDFLAGS) -o $@
+$(EXE): main.o gpu.o cpu.o opcodes.o graphics.o sdl_helper_functions.o
+	$(CXX) main.o gpu.o cpu.o opcodes.o graphics.o sdl_helper_functions.o $(LDFLAGS) -o $@
 
-main.o: main.c mem.h cpu.h opcodes.h graphics.h
+main.o: main.c mem.h cpu.h opcodes.h graphics.h gpu.h
 	$(CXX) $(CXXFLAGS) main.c -o main.o
 
 cpu.o: cpu.c cpu.h mem.h opcodes.h graphics.h
 	$(CXX) $(CXXFLAGS) cpu.c -o cpu.o
+
+gpu.o: gpu.c gpu.h mem.h
+	$(CXX) $(CXXFLAGS) gpu.c -o gpu.o
 
 opcodes.o: opcodes.c opcodes.h cpu.h mem.h
 	$(CXX) $(CXXFLAGS) opcodes.c -o opcodes.o
