@@ -59,8 +59,11 @@ bool interrupts_enabled;
 
 unsigned int pc;
 
-void run_command();
-unsigned char get_immediate();
-unsigned short get_word();
+void run_command(void);
+unsigned char get_immediate(void);
+unsigned short get_word(void);
+void update_screen(void);
+
+unsigned x_draw;
 
 #endif
