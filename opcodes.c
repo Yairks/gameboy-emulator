@@ -1245,15 +1245,15 @@ void LD_HL_n(void) {
 }
 
 void LD_A_BC(void) {
-    LD(&registers.a, registers.bc);
+    LD(&registers.a, memory[registers.bc]);
 }
 
 void LD_A_DE(void) {
-    LD(&registers.a, registers.de);
+    LD(&registers.a, memory[registers.de]);
 }
 
 void LD_A_nn(void) {
-    LD(&registers.a, get_word());
+    LD(&registers.a, memory[get_word()]);
     pc += 2;
 }
 
@@ -1316,24 +1316,24 @@ void LD_C_addr_A(void) {
 
 void LDD_A_HL(void) {
     LD_A_HL();
-    DEC_HL();
+    DEC16_HL();
 }
 
 // LDD (HL),A
 void LDD_HL_A(void) {
     LD_HL_A();
-    DEC_HL();
+    DEC16_HL();
 }
 
 void LDI_A_HL(void) {
     LD_A_HL();
-    INC_HL();
+    INC16_HL();
 }
 
 // LDD (HL),A
 void LDI_HL_A(void) {
     LD_HL_A();
-    INC_HL();
+    INC16_HL();
 }
 
 void LDH_n_A(void) {
@@ -1404,7 +1404,7 @@ void LD_nn_SP(void) {
 
 void PUSH(unsigned char value) {
     registers.sp--;
-    stack[registers.sp] = value;
+    memory[registers.sp] = value;
 }
 
 void PUSH_AF(void) {
@@ -1428,7 +1428,7 @@ void PUSH_HL(void) {
 }
 
 void POP(unsigned char *variable) {
-    *variable = stack[registers.sp];
+    *variable = memory[registers.sp];
     registers.sp++;
 }
 
@@ -1858,6 +1858,8 @@ void DEC(unsigned char *dest) {
     flags.z = ((*dest - 1)&0xFF) == 0;
     flags.n = 1;
     flags.h = (*dest&0x0F) == 0;
+
+    (*dest)--;
 }
 
 void DEC_A(void) {
@@ -2740,7 +2742,7 @@ void RESET_HL(void) {
 // Jumps !! Woohoo !!
 void JP(void) {
     pc = get_word();
-    pc += 2;
+    pc--; // Because it'll get incrememnted in a second anyway.
 }
 
 void JP_NZ(void) {
@@ -2768,7 +2770,7 @@ void JP_HL(void) {
 }
 
 void JR(void) {
-    printf("\nJumping\n\n");
+    // printf("\nJumping\n\n");
     unsigned char next = get_immediate();
     if (next & 0x80) {
         pc = pc + next + 1 - 0x100;
@@ -2779,31 +2781,35 @@ void JR(void) {
 }
 
 void JR_NZ(void) {
-    if (flags.z != 0)
+    if (!flags.z)
         JR();
     
-    pc++;
+    else
+        pc++;
 }
 
 void JR_Z(void) {
-    if (flags.z == 0)
+    if (flags.z)
         JR();
 
-    pc++;
+    else
+        pc++;
 }
 
 void JR_NC(void) {
-    if (flags.c != 0)
+    if (!flags.c)
         JR();
 
-    pc++;
+    else
+        pc++;
 }
 
 void JR_C(void) {
-    if (flags.c == 0)
+    if (flags.c)
         JR();
 
-    pc++;
+    else
+        pc++;
 }
 
 // ---------
@@ -2815,22 +2821,22 @@ void CALL(void) {
 }
 
 void CALL_NZ(void) {
-    if (flags.z != 0)
+    if (!flags.z)
         CALL();
 }
 
 void CALL_Z(void) {
-    if (flags.z == 0)
+    if (flags.z)
         CALL();
 }
 
 void CALL_NC(void) {
-    if (flags.c != 0)
+    if (!flags.c)
         CALL();
 }
 
 void CALL_C(void) {
-    if (flags.c == 0)
+    if (flags.c)
         CALL();
 }
 
@@ -2881,27 +2887,28 @@ void RET(void) {
     POP(&pc_l);
     POP(&pc_h);
     pc = pc_l + (pc_h << 8);
+    pc--;
 }
 void RET_NZ(void) {
-    if (flags.z != 0) {
+    if (!flags.z) {
         RET();
     }
 }
 
 void RET_Z(void) {
-    if (flags.z == 0) {
+    if (flags.z) {
         RET();
     }
 }
 
 void RET_NC(void) {
-    if (flags.c != 0) {
+    if (!flags.c) {
         RET();
     }
 }
 
 void RET_C(void) {
-    if (flags.c == 0) {
+    if (flags.c) {
         RET();
     }
 }
